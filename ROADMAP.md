@@ -1,6 +1,6 @@
 # Roadmap
 
-Planned work after v0.1, with rough estimates. Total: about 31 hours.
+Planned work after v0.1, with rough estimates. Total: about 32 hours.
 
 ## v0.1 (first weekend)
 
