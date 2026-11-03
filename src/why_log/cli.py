@@ -11,6 +11,7 @@ import time
 from pathlib import Path
 
 from . import __version__
+from .export import to_markdown
 from .journal import Entry, append_entry, default_path, read_entries
 from .query import filter_entries, parse_since
 
@@ -118,6 +119,18 @@ def cmd_list(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_export(args: argparse.Namespace) -> int:
+    entries = selected_entries(args)
+    if entries is None:
+        return 2
+    text = to_markdown(entries, title=args.title, status=format_status, place=short_path)
+    if args.output:
+        args.output.write_text(text, encoding="utf-8")
+    else:
+        sys.stdout.write(text)
+    return 0
+
+
 def add_filter_options(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("-g", "--grep", metavar="TEXT", help="match TEXT in the command or reason")
     parser.add_argument("--here", action="store_true", help="only commands run in this folder or below")
@@ -154,6 +167,12 @@ def build_parser() -> argparse.ArgumentParser:
     ls = sub.add_parser("list", aliases=["ls"], help="show recorded commands, oldest first")
     add_filter_options(ls)
     ls.set_defaults(func=cmd_list)
+
+    export = sub.add_parser("export", help="print recorded commands as Markdown")
+    add_filter_options(export)
+    export.add_argument("--title", default="Command journal", help="heading for the document")
+    export.add_argument("-o", "--output", type=Path, metavar="FILE", help="write to FILE instead of stdout")
+    export.set_defaults(func=cmd_export)
 
     return parser
 
