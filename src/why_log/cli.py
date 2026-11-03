@@ -11,7 +11,8 @@ import time
 from pathlib import Path
 
 from . import __version__
-from .journal import append_entry, default_path
+from .journal import Entry, append_entry, default_path, read_entries
+from .query import filter_entries, parse_since
 
 
 def run_command(argv: list[str]) -> tuple[int, float]:
@@ -64,6 +65,67 @@ def cmd_add(args: argparse.Namespace) -> int:
     return 0
 
 
+def short_path(path: str) -> str:
+    home = str(Path.home())
+    if path == home or path.startswith(home + os.sep):
+        return "~" + path[len(home):]
+    return path
+
+
+def format_status(entry: Entry) -> str:
+    if entry.exit is None:
+        return "added"
+    status = "ok" if entry.exit == 0 else f"exit {entry.exit}"
+    if entry.duration is not None:
+        status += f", {entry.duration:.1f}s"
+    return status
+
+
+def format_entry(entry: Entry) -> str:
+    when = entry.when.astimezone().strftime("%Y-%m-%d %H:%M")
+    lines = [
+        f"#{entry.id}  {when}  {format_status(entry)}  {short_path(entry.cwd)}",
+        f"    $ {entry.cmd}",
+    ]
+    if entry.why:
+        lines.append(f"    why: {entry.why}")
+    return "\n".join(lines)
+
+
+def selected_entries(args: argparse.Namespace) -> list[Entry] | None:
+    """Read the journal and apply the shared filter options. None on bad input."""
+    try:
+        since = parse_since(args.since) if args.since else None
+    except ValueError as err:
+        print(f"whylog: {err}", file=sys.stderr)
+        return None
+    return filter_entries(
+        read_entries(args.file),
+        grep=args.grep,
+        here=Path.cwd() if args.here else None,
+        since=since,
+        failed=args.failed,
+        last=args.last,
+    )
+
+
+def cmd_list(args: argparse.Namespace) -> int:
+    entries = selected_entries(args)
+    if entries is None:
+        return 2
+    if entries:
+        print("\n\n".join(format_entry(e) for e in entries))
+    return 0
+
+
+def add_filter_options(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument("-g", "--grep", metavar="TEXT", help="match TEXT in the command or reason")
+    parser.add_argument("--here", action="store_true", help="only commands run in this folder or below")
+    parser.add_argument("--since", metavar="WHEN", help="30m, 12h, 7d, 2w or a date like 2026-10-01")
+    parser.add_argument("--failed", action="store_true", help="only commands that exited non-zero")
+    parser.add_argument("-n", "--last", type=int, metavar="N", help="only the newest N matches")
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="whylog",
@@ -88,6 +150,10 @@ def build_parser() -> argparse.ArgumentParser:
     add.add_argument("--exit", type=int, default=None, help="exit code, if you know it")
     add.add_argument("command", nargs=argparse.REMAINDER, help='the command, best quoted: "tar xzf a.tgz"')
     add.set_defaults(func=cmd_add)
+
+    ls = sub.add_parser("list", aliases=["ls"], help="show recorded commands, oldest first")
+    add_filter_options(ls)
+    ls.set_defaults(func=cmd_list)
 
     return parser
 
