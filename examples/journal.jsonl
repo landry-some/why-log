@@ -1,0 +1,6 @@
+{"id": 1, "time": "2026-10-20T09:12:04+00:00", "cwd": "/home/demo/photos", "cmd": "ffmpeg -i in.mov -vf scale=1280:-2 -c:v libx264 -crf 23 out.mp4", "why": "shrink the demo video to fit the 25 MB upload limit", "exit": 0, "duration": 41.207}
+{"id": 2, "time": "2026-10-20T09:15:40+00:00", "cwd": "/home/demo/code/blog", "cmd": "make deploy", "why": "publish the post about home lab backups", "exit": 2, "duration": 6.81}
+{"id": 3, "time": "2026-10-20T09:18:02+00:00", "cwd": "/home/demo/code/blog", "cmd": "make deploy", "why": "retry after fixing the broken image link", "exit": 0, "duration": 7.302}
+{"id": 4, "time": "2026-10-27T18:40:11+00:00", "cwd": "/home/demo", "cmd": "docker system prune -a --volumes", "why": "disk was at 97%, freed about 20 GB", "exit": null, "duration": null}
+{"id": 5, "time": "2026-11-02T21:03:55+00:00", "cwd": "/home/demo/code/blog", "cmd": "git filter-repo --path drafts/ --invert-paths", "why": "drop the drafts folder from history before making the repo public", "exit": 0, "duration": 2.114}
+{"id": 6, "time": "2026-11-03T08:30:19+00:00", "cwd": "/home/demo/code/notes", "cmd": "pytest -x", "why": "", "exit": 1, "duration": 1.502}
