@@ -32,10 +32,13 @@ def run_command(argv: list[str]) -> tuple[int, float]:
     return code, time.monotonic() - start
 
 
+def _command_words(words: list[str]) -> list[str]:
+    """Drop the optional `--` that separates whylog's options from the command."""
+    return words[1:] if words and words[0] == "--" else words
+
+
 def cmd_run(args: argparse.Namespace) -> int:
-    argv = args.command
-    if argv and argv[0] == "--":
-        argv = argv[1:]
+    argv = _command_words(args.command)
     if not argv:
         print("whylog run: no command given (usage: whylog run -m WHY -- CMD ...)", file=sys.stderr)
         return 2
@@ -49,6 +52,16 @@ def cmd_run(args: argparse.Namespace) -> int:
         duration=seconds,
     )
     return code
+
+
+def cmd_add(args: argparse.Namespace) -> int:
+    cmd = " ".join(_command_words(args.command)).strip()
+    if not cmd:
+        print("whylog add: no command given (usage: whylog add -m WHY CMD)", file=sys.stderr)
+        return 2
+    entry = append_entry(args.file, cmd=cmd, why=args.message, cwd=os.getcwd(), exit=args.exit)
+    print(f"recorded #{entry.id}")
+    return 0
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -69,6 +82,12 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("-m", "--message", default="", help="why you are running it")
     run.add_argument("command", nargs=argparse.REMAINDER, help="the command, after --")
     run.set_defaults(func=cmd_run)
+
+    add = sub.add_parser("add", help="record a command you already ran, without running it")
+    add.add_argument("-m", "--message", default="", help="why you ran it")
+    add.add_argument("--exit", type=int, default=None, help="exit code, if you know it")
+    add.add_argument("command", nargs=argparse.REMAINDER, help='the command, best quoted: "tar xzf a.tgz"')
+    add.set_defaults(func=cmd_add)
 
     return parser
 
