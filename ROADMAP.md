@@ -4,10 +4,10 @@ Planned work after v0.1, with rough estimates. Total: about 31 hours.
 
 ## v0.1 (first weekend)
 
-- [ ] `whylog run -m "why" -- <cmd...>`: run a command and record it
-- [ ] `whylog add -m "why" "<cmd>"`: record a command without running it
-- [ ] `whylog list` with `--grep`, `--here`, `--since`, `--failed`, `-n`
-- [ ] `whylog export`: print entries as Markdown
+- [x] `whylog run -m "why" -- <cmd...>`: run a command and record it
+- [x] `whylog add -m "why" "<cmd>"`: record a command without running it
+- [x] `whylog list` with `--grep`, `--here`, `--since`, `--failed`, `-n`
+- [x] `whylog export`: print entries as Markdown
 
 ## Features (15 h)
 
