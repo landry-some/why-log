@@ -89,6 +89,16 @@ Filters combine. Output looks like this:
 
 Times are shown in your local time zone.
 
+### Fix or delete an entry
+
+```bash
+whylog edit 3 -m "retry after fixing the broken image link"   # new reason for #3
+whylog rm 4                                                    # drop #4
+```
+
+Use the number shown by `list`. Other entries keep their numbers, and new entries
+keep counting up from the highest one.
+
 ### Export as Markdown or JSON
 
 ```bash
@@ -133,7 +143,7 @@ pytest
 ## Plans
 
 See [ROADMAP.md](ROADMAP.md): shell hooks that ask "why?" after slow or failed
-commands, `rerun`, editing entries, file locking and more.
+commands, `rerun`, file locking and more.
 
 ## License
 

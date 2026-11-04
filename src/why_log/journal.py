@@ -97,3 +97,32 @@ def append_entry(
     with path.open("a", encoding="utf-8") as f:
         f.write(json.dumps(asdict(entry), ensure_ascii=False) + "\n")
     return entry
+
+
+def rewrite_entry(path: Path, entry_id: int, new: Entry | None) -> bool:
+    """Replace the entry with entry_id by new, or drop it when new is None.
+
+    Every other line, corrupt ones included, is kept as it is. The file is replaced
+    in one step so a crash can't leave it half written. False if there is no such entry.
+    """
+    if not path.exists():
+        return False
+    found = False
+    kept = []
+    with path.open(encoding="utf-8", errors="surrogateescape") as f:
+        for line in f:
+            try:
+                is_target = _parse_line(line.strip()).id == entry_id
+            except ValueError:
+                is_target = False
+            if is_target and not found:
+                found = True
+                if new is not None:
+                    kept.append(json.dumps(asdict(new), ensure_ascii=False) + "\n")
+            else:
+                kept.append(line)
+    if found:
+        tmp = path.with_name(path.name + ".tmp")
+        tmp.write_text("".join(kept), encoding="utf-8", errors="surrogateescape")
+        os.replace(tmp, path)
+    return found

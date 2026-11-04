@@ -8,11 +8,12 @@ import shlex
 import subprocess
 import sys
 import time
+from dataclasses import replace
 from pathlib import Path
 
 from . import __version__
 from .export import to_json, to_markdown
-from .journal import Entry, append_entry, default_path, read_entries
+from .journal import Entry, append_entry, default_path, read_entries, rewrite_entry
 from .query import filter_entries, parse_since
 
 
@@ -64,6 +65,23 @@ def cmd_add(args: argparse.Namespace) -> int:
         return 2
     entry = append_entry(args.file, cmd=cmd, why=args.message, cwd=os.getcwd(), exit=args.exit, tags=args.tag)
     print(f"recorded #{entry.id}")
+    return 0
+
+
+def cmd_edit(args: argparse.Namespace) -> int:
+    entry = next((e for e in read_entries(args.file) if e.id == args.id), None)
+    if entry is None or not rewrite_entry(args.file, args.id, replace(entry, why=args.message)):
+        print(f"whylog: no entry #{args.id}", file=sys.stderr)
+        return 1
+    print(f"updated #{args.id}")
+    return 0
+
+
+def cmd_rm(args: argparse.Namespace) -> int:
+    if not rewrite_entry(args.file, args.id, None):
+        print(f"whylog: no entry #{args.id}", file=sys.stderr)
+        return 1
+    print(f"removed #{args.id}")
     return 0
 
 
@@ -178,6 +196,15 @@ def build_parser() -> argparse.ArgumentParser:
     add_tag_option(add)
     add.add_argument("command", nargs=argparse.REMAINDER, help='the command, best quoted: "tar xzf a.tgz"')
     add.set_defaults(func=cmd_add)
+
+    edit = sub.add_parser("edit", help="change the reason of a recorded command")
+    edit.add_argument("id", type=int, help="entry number, as shown by list")
+    edit.add_argument("-m", "--message", required=True, help="the new reason")
+    edit.set_defaults(func=cmd_edit)
+
+    rm = sub.add_parser("rm", help="delete a recorded command")
+    rm.add_argument("id", type=int, help="entry number, as shown by list")
+    rm.set_defaults(func=cmd_rm)
 
     ls = sub.add_parser("list", aliases=["ls"], help="show recorded commands, oldest first")
     add_filter_options(ls)
