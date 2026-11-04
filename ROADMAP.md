@@ -21,7 +21,7 @@ Planned work after v0.1, with rough estimates. Total: about 32 hours.
 ## Bugs and edge cases (6 h)
 
 - [ ] Lock the journal file so two shells writing at once can't interleave lines (1.5 h)
-- [ ] Skip and report corrupt journal lines instead of failing (1 h)
+- [x] Skip and report corrupt journal lines instead of failing (1 h)
 - [ ] Forward Ctrl-C / SIGTERM to the child and record the signal exit (1.5 h)
 - [ ] Show times in local time correctly across DST changes (1 h)
 - [ ] Handle arguments and paths that are not valid UTF-8 (1 h)

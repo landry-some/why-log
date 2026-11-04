@@ -101,7 +101,9 @@ The file is JSON Lines, one entry per line:
 ```
 
 `exit` and `duration` are `null` for entries made with `add`. The file is plain text,
-so you can edit it by hand or keep it in your dotfiles.
+so you can edit it by hand or keep it in your dotfiles. A line that isn't a valid
+entry (say, after a bad hand edit) is skipped with a warning naming its line number,
+and the rest of the journal still loads.
 
 ## Test
 

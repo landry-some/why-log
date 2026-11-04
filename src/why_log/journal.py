@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import json
 import os
+import sys
 from dataclasses import asdict, dataclass
 from datetime import datetime
 from pathlib import Path
@@ -36,15 +37,33 @@ def default_path() -> Path:
     return Path(data_home) / "why-log" / "journal.jsonl"
 
 
+def _parse_line(line: str) -> Entry:
+    """Turn one journal line into an Entry. Raises ValueError if it isn't one."""
+    data = json.loads(line)  # JSONDecodeError is a ValueError
+    if not isinstance(data, dict):
+        raise ValueError("not a JSON object")
+    try:
+        entry = Entry(**data)
+    except TypeError as err:  # missing or unknown fields
+        raise ValueError(str(err).removeprefix("Entry.__init__() ")) from None
+    datetime.fromisoformat(entry.time)  # fail here, not later while listing
+    return entry
+
+
 def read_entries(path: Path) -> list[Entry]:
+    """Read all entries. Corrupt lines are skipped with a warning on stderr."""
     if not path.exists():
         return []
     entries = []
-    with path.open(encoding="utf-8") as f:
-        for line in f:
+    with path.open(encoding="utf-8", errors="replace") as f:
+        for number, line in enumerate(f, start=1):
             line = line.strip()
-            if line:
-                entries.append(Entry(**json.loads(line)))
+            if not line:
+                continue
+            try:
+                entries.append(_parse_line(line))
+            except ValueError as err:
+                print(f"whylog: skipping corrupt line {number} in {path}: {err}", file=sys.stderr)
     return entries
 
 
