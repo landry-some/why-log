@@ -26,6 +26,8 @@ def to_markdown(entries: list[Entry], *, title: str, status: Callable[[Entry], s
             lines += ["", f"## {day}"]
             current_day = day
         head = f"- **{when:%H:%M}** in `{place(entry.cwd)}` ({status(entry)})"
+        if entry.tags:
+            head += f" [{', '.join(entry.tags)}]"
         if entry.why:
             head += f": {entry.why}"
         fence = _fence(entry.cmd)

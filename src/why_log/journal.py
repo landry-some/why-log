@@ -8,7 +8,7 @@ from __future__ import annotations
 import json
 import os
 import sys
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from pathlib import Path
 
@@ -22,6 +22,7 @@ class Entry:
     why: str
     exit: int | None = None  # None when the command was added, not run
     duration: float | None = None  # seconds
+    tags: list[str] = field(default_factory=list)
 
     @property
     def when(self) -> datetime:
@@ -76,6 +77,7 @@ def append_entry(
     time: datetime | None = None,
     exit: int | None = None,
     duration: float | None = None,
+    tags: list[str] | None = None,
 ) -> Entry:
     """Append a new entry with the next free id and return it."""
     existing = read_entries(path)
@@ -89,6 +91,7 @@ def append_entry(
         why=why,
         exit=exit,
         duration=None if duration is None else round(duration, 3),
+        tags=list(tags or []),
     )
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("a", encoding="utf-8") as f:

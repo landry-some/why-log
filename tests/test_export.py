@@ -83,3 +83,9 @@ def test_export_command_applies_filters_and_writes_file(tmp_path, monkeypatch, c
     text = out.read_text()
     assert text.startswith("# Deploys\n")
     assert "kubectl apply" in text and "  ls\n" not in text
+
+
+def test_tags_follow_the_status():
+    e = entry(1, "make deploy", why="ship it")
+    e.tags = ["deploy"]
+    assert "- **10:00** in `/srv` (ok, 1.0s) [deploy]: ship it\n" in render([e])

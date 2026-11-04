@@ -79,3 +79,10 @@ def test_invalid_utf8_line_is_skipped_not_fatal(tmp_path, capsys):
     append_entry(path, cmd="ok", why="", cwd="/")
     assert [e.cmd for e in read_entries(path)] == ["ok"]
     assert "skipping corrupt line 1" in capsys.readouterr().err
+
+
+def test_entries_written_before_tags_existed_read_with_no_tags(tmp_path):
+    path = tmp_path / "j.jsonl"
+    path.write_text('{"id": 1, "time": "2026-10-01T10:00:00+00:00", "cwd": "/", "cmd": "ls", '
+                    '"why": "", "exit": 0, "duration": 0.1}\n')
+    assert read_entries(path)[0].tags == []

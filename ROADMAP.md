@@ -13,7 +13,7 @@ Planned work after v0.1, with rough estimates. Total: about 32 hours.
 
 - [ ] Shell hook for bash and zsh that asks "why?" after slow or failed commands (5 h)
 - [ ] `whylog rerun <id>`: run a recorded command again in its original directory (2 h)
-- [ ] Tags: `-t deploy` on `run`/`add`, `--tag` filter on `list`/`export` (2 h)
+- [x] Tags: `-t deploy` on `run`/`add`, `--tag` filter on `list`/`export` (2 h)
 - [ ] `whylog edit <id>` to change the reason, `whylog rm <id>` to drop an entry (2 h)
 - [ ] Optional `--keep-output N` to store the last N lines of output (3 h)
 - [ ] `whylog export --json` for scripting (1 h)

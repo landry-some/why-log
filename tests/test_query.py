@@ -76,3 +76,10 @@ def test_filters_combine():
     ]
     got = filter_entries(entries, grep="make", here=Path("/a"), failed=True)
     assert [e.id for e in got] == [1]
+
+
+def test_tag_keeps_entries_with_that_tag():
+    entries = [make(1), make(2), make(3)]
+    entries[0].tags = ["deploy", "prod"]
+    entries[2].tags = ["deploy-staging"]
+    assert [e.id for e in filter_entries(entries, tag="deploy")] == [1]

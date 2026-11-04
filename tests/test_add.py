@@ -53,3 +53,13 @@ def test_add_strips_double_dash(journal):
 
 def test_add_without_command_is_a_usage_error(journal):
     assert main(["add", "-m", "x"]) == 2
+
+
+def test_add_records_tags(journal):
+    main(["add", "-t", "deploy", "--tag", "prod", "-m", "x", "make deploy"])
+    assert read_entries(journal)[0].tags == ["deploy", "prod"]
+
+
+def test_add_without_tags_stores_empty_list(journal):
+    main(["add", "ls"])
+    assert read_entries(journal)[0].tags == []

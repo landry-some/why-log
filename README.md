@@ -57,6 +57,16 @@ whylog add --exit 1 -m "flaky on CI too" -- pytest -x
 
 `add` does not run anything. The entry has no exit code unless you pass `--exit`.
 
+### Tag entries
+
+```bash
+whylog run -t deploy -t blog -m "publish the backups post" -- make deploy
+whylog add -t cleanup -m "disk was at 97%" "docker system prune -a"
+```
+
+`-t` / `--tag` works on `run` and `add` and can be repeated. Tags show in brackets
+after the folder in `list` and after the status in `export`.
+
 ### List entries
 
 ```bash
@@ -66,6 +76,7 @@ whylog list --grep docker      # text in the command or the reason, any case
 whylog list --here             # run in this folder or a folder below it
 whylog list --since 7d         # 30m, 12h, 7d, 2w, or a date like 2026-10-01
 whylog list --failed           # commands that exited non-zero
+whylog list --tag deploy       # entries tagged exactly "deploy"
 ```
 
 Filters combine. Output looks like this:
@@ -97,10 +108,11 @@ to use another file, or pass `--file PATH` before the subcommand.
 The file is JSON Lines, one entry per line:
 
 ```json
-{"id": 3, "time": "2026-10-20T09:18:02+00:00", "cwd": "/home/demo/code/blog", "cmd": "make deploy", "why": "retry after fixing the broken image link", "exit": 0, "duration": 7.302}
+{"id": 3, "time": "2026-10-20T09:18:02+00:00", "cwd": "/home/demo/code/blog", "cmd": "make deploy", "why": "retry after fixing the broken image link", "exit": 0, "duration": 7.302, "tags": ["deploy"]}
 ```
 
-`exit` and `duration` are `null` for entries made with `add`. The file is plain text,
+`exit` and `duration` are `null` for entries made with `add`. `tags` may be missing
+in older entries; it then counts as no tags. The file is plain text,
 so you can edit it by hand or keep it in your dotfiles. A line that isn't a valid
 entry (say, after a bad hand edit) is skipped with a warning naming its line number,
 and the rest of the journal still loads.
@@ -114,7 +126,7 @@ pytest
 ## Plans
 
 See [ROADMAP.md](ROADMAP.md): shell hooks that ask "why?" after slow or failed
-commands, `rerun`, tags, editing entries, file locking and more.
+commands, `rerun`, editing entries, file locking and more.
 
 ## License
 

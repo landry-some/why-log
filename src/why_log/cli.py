@@ -52,6 +52,7 @@ def cmd_run(args: argparse.Namespace) -> int:
         cwd=os.getcwd(),
         exit=code,
         duration=seconds,
+        tags=args.tag,
     )
     return code
 
@@ -61,7 +62,7 @@ def cmd_add(args: argparse.Namespace) -> int:
     if not cmd:
         print("whylog add: no command given (usage: whylog add -m WHY CMD)", file=sys.stderr)
         return 2
-    entry = append_entry(args.file, cmd=cmd, why=args.message, cwd=os.getcwd(), exit=args.exit)
+    entry = append_entry(args.file, cmd=cmd, why=args.message, cwd=os.getcwd(), exit=args.exit, tags=args.tag)
     print(f"recorded #{entry.id}")
     return 0
 
@@ -84,10 +85,10 @@ def format_status(entry: Entry) -> str:
 
 def format_entry(entry: Entry) -> str:
     when = entry.when.astimezone().strftime("%Y-%m-%d %H:%M")
-    lines = [
-        f"#{entry.id}  {when}  {format_status(entry)}  {short_path(entry.cwd)}",
-        f"    $ {entry.cmd}",
-    ]
+    head = f"#{entry.id}  {when}  {format_status(entry)}  {short_path(entry.cwd)}"
+    if entry.tags:
+        head += f"  [{', '.join(entry.tags)}]"
+    lines = [head, f"    $ {entry.cmd}"]
     if entry.why:
         lines.append(f"    why: {entry.why}")
     return "\n".join(lines)
@@ -106,6 +107,7 @@ def selected_entries(args: argparse.Namespace) -> list[Entry] | None:
         here=Path.cwd() if args.here else None,
         since=since,
         failed=args.failed,
+        tag=args.tag,
         last=args.last,
     )
 
@@ -136,7 +138,15 @@ def add_filter_options(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--here", action="store_true", help="only commands run in this folder or below")
     parser.add_argument("--since", metavar="WHEN", help="30m, 12h, 7d, 2w or a date like 2026-10-01")
     parser.add_argument("--failed", action="store_true", help="only commands that exited non-zero")
+    parser.add_argument("-t", "--tag", metavar="TAG", help="only commands tagged TAG")
     parser.add_argument("-n", "--last", type=int, metavar="N", help="only the newest N matches")
+
+
+def add_tag_option(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument(
+        "-t", "--tag", action="append", default=[], metavar="TAG",
+        help="tag the entry (repeat for more tags)",
+    )
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -155,12 +165,14 @@ def build_parser() -> argparse.ArgumentParser:
 
     run = sub.add_parser("run", help="run a command and record it")
     run.add_argument("-m", "--message", default="", help="why you are running it")
+    add_tag_option(run)
     run.add_argument("command", nargs=argparse.REMAINDER, help="the command, after --")
     run.set_defaults(func=cmd_run)
 
     add = sub.add_parser("add", help="record a command you already ran, without running it")
     add.add_argument("-m", "--message", default="", help="why you ran it")
     add.add_argument("--exit", type=int, default=None, help="exit code, if you know it")
+    add_tag_option(add)
     add.add_argument("command", nargs=argparse.REMAINDER, help='the command, best quoted: "tar xzf a.tgz"')
     add.set_defaults(func=cmd_add)
 

@@ -44,12 +44,14 @@ def filter_entries(
     here: Path | None = None,
     since: datetime | None = None,
     failed: bool = False,
+    tag: str | None = None,
     last: int | None = None,
 ) -> list[Entry]:
     """Keep entries matching every given filter, oldest first.
 
     grep matches the command or the reason, case-insensitively.
     here keeps entries run in that folder or below it.
+    tag keeps entries carrying exactly that tag.
     last keeps only the newest N of the matches.
     """
     needle = grep.lower() if grep else None
@@ -62,6 +64,8 @@ def filter_entries(
         if since is not None and entry.when < since:
             continue
         if failed and not entry.exit:  # None (added) and 0 both count as not failed
+            continue
+        if tag is not None and tag not in entry.tags:
             continue
         kept.append(entry)
     if last is not None:

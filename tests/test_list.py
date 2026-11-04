@@ -98,3 +98,16 @@ def test_list_since_date(journal, capsys):
 def test_list_bad_since_is_a_usage_error(journal, capsys):
     assert main(["list", "--since", "yesterday-ish"]) == 2
     assert "can't read --since" in capsys.readouterr().err
+
+
+def test_list_shows_tags_and_filters_by_tag(journal, capsys):
+    write(
+        journal,
+        dict(entry(1, "make deploy"), tags=["deploy", "prod"]),
+        entry(2, "ls"),
+    )
+    main(["list", "--tag", "deploy"])
+    assert capsys.readouterr().out == (
+        "#1  2026-11-01 10:00  ok, 0.5s  /srv  [deploy, prod]\n"
+        "    $ make deploy\n"
+    )

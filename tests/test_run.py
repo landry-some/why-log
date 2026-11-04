@@ -69,3 +69,8 @@ def test_file_option_overrides_env(journal, tmp_path):
     main(["--file", str(other), "run", "--", PY, "-c", "pass"])
     assert len(read_entries(other)) == 1
     assert not journal.exists()
+
+
+def test_run_records_tags(journal):
+    main(["run", "-t", "check", "--", PY, "-c", "pass"])
+    assert read_entries(journal)[0].tags == ["check"]
