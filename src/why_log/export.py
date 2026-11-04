@@ -1,9 +1,11 @@
-"""Markdown export of journal entries."""
+"""Markdown and JSON export of journal entries."""
 
 from __future__ import annotations
 
+import json
 import re
 from collections.abc import Callable
+from dataclasses import asdict
 
 from .journal import Entry
 
@@ -37,3 +39,8 @@ def to_markdown(entries: list[Entry], *, title: str, status: Callable[[Entry], s
     if not entries:
         lines += ["", "No entries."]
     return "\n".join(lines) + "\n"
+
+
+def to_json(entries: list[Entry]) -> str:
+    """Render entries as a JSON array, with the same fields as the journal file."""
+    return json.dumps([asdict(e) for e in entries], indent=2, ensure_ascii=False) + "\n"

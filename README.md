@@ -89,7 +89,7 @@ Filters combine. Output looks like this:
 
 Times are shown in your local time zone.
 
-### Export as Markdown
+### Export as Markdown or JSON
 
 ```bash
 whylog export --since 2w --title "Last two weeks" -o notes.md
@@ -98,6 +98,13 @@ whylog export --since 2w --title "Last two weeks" -o notes.md
 `export` takes the same filters as `list` and writes Markdown grouped by day, with
 each command in a code block, ready to paste into notes or a runbook. Without `-o`
 it prints to stdout.
+
+For scripts, `--json` prints the matching entries as a JSON array with the same
+fields as the journal file:
+
+```bash
+whylog export --json --failed | jq -r '.[].cmd'
+```
 
 ## Where the journal lives
 

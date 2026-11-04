@@ -4,7 +4,7 @@ import time
 import pytest
 
 from why_log.cli import format_status, main
-from why_log.export import to_markdown
+from why_log.export import to_json, to_markdown
 from why_log.journal import Entry
 
 
@@ -89,3 +89,27 @@ def test_tags_follow_the_status():
     e = entry(1, "make deploy", why="ship it")
     e.tags = ["deploy"]
     assert "- **10:00** in `/srv` (ok, 1.0s) [deploy]: ship it\n" in render([e])
+
+
+def test_json_export_keeps_every_field():
+    e = entry(1, "echo café", why="ünïcode", exit=None, duration=None)
+    e.tags = ["demo"]
+    assert json.loads(to_json([e])) == [dict(
+        id=1, time="2026-11-01T10:00:00+00:00", cwd="/srv", cmd="echo café", why="ünïcode",
+        exit=None, duration=None, tags=["demo"],
+    )]
+    assert to_json([]) == "[]\n"
+
+
+def test_export_json_option_applies_filters(tmp_path, capsys):
+    journal = tmp_path / "j.jsonl"
+    journal.write_text(
+        json.dumps(dict(id=1, time="2026-11-01T10:00:00+00:00", cwd="/srv", cmd="make",
+                        why="", exit=2, duration=1.0)) + "\n"
+        + json.dumps(dict(id=2, time="2026-11-01T10:05:00+00:00", cwd="/srv", cmd="ls",
+                          why="", exit=0, duration=0.1)) + "\n"
+    )
+    assert main(["--file", str(journal), "export", "--json", "--failed"]) == 0
+    data = json.loads(capsys.readouterr().out)
+    assert [e["id"] for e in data] == [1]
+    assert data[0]["tags"] == []
